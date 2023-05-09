@@ -1,0 +1,117 @@
+---
+title: "LivePalestine"
+author: "Manar Alnazer"
+output:
+  html_document
+---
+
+```{r, include=FALSE}
+# Do not edit this code chunk
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning = FALSE)
+```
+
+## Upload Data 
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(lubridate)
+```
+
+```{r}
+live_data <- read.csv("data/Live_data.csv") 
+```
+
+```{r}
+live_data$Date <- as.Date(live_data$Date, format="%m/%d/%Y")
+```
+
+```{r}
+live_date <- live_data |>
+  group_by(Date) |>
+  summarize(total=n())
+```
+
+## Data Visualization 
+
+```{r}
+ggplot(data = live_date,
+       aes(x=Date,
+           y=total)) +
+  geom_line(color="darkblue", size=0.75)
+```
+
+```{r}
+ggplot(data = live_data,
+       aes(x=Date,
+           fill=Violence)) +
+  geom_bar(position = position_dodge(preserve = "single")) +
+  labs(title="Number of Instagram Lives, Their Dates, and Violence",
+       y="Total Number of Lives",
+       x="Date")
+```
+
+```{r}
+ggplot(data = live_data,
+       aes(x=Date,
+           fill=Collaborations)) +
+  geom_bar(position = position_dodge(preserve = "single")) +
+  labs(title="Number of Instagram Lives, Their Dates, and Collaborations",
+       y="Total Number of Lives",
+       x="Date")
+```
+
+```{r}
+ggplot(data = live_data,
+       aes(x=Violence,
+           fill=Violence)) +
+  geom_bar()
+```
+
+```{r}
+ggplot(data = live_data,
+       aes(x=Collaborations,
+           fill=Collaborations)) +
+  geom_bar()
+```
+
+```{r}
+tags <- c("Israeli Violations", "Updates", "Talk Panel", "Protests", "Celebrations", "Settler Violence")
+get_tag_total <- function(tag) {
+  live_data |>
+  filter(grepl(tag, Tags)) |>
+    summarize(total = n(),
+              total_char = as.character(total)) |>
+    pull(total_char)
+    
+}
+tag_total <- map_chr(tags, get_tag_total)
+tag_total <- as.numeric(tag_total)
+
+```
+
+```{r}
+tag_data <- data.frame(tags, tag_total)
+```
+
+```{r}
+ggplot(data=tag_data,
+         aes(fill=tags,
+             x=tags,
+             y=tag_total)) +
+    geom_col() +
+  labs(title="Topics of Streams",
+       x = "Topic",
+       y="Number of Streams")
+```
+
+```{r}
+ggplot(tag_data, aes(x="", y=tag_total, fill=tags))+
+  geom_bar(width = 1, stat = "identity")+ 
+  coord_polar("y") + 
+  theme(axis.text.x=element_blank())+
+  labs(x="",
+       y="", 
+       fill="Topics",
+       title="The Topics Discussed in the Instagram Lives")
+```
